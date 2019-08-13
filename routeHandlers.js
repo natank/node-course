@@ -1,20 +1,6 @@
-/** handle GET request */
-function getHandler(req, res, reqUrl) {
-    console.log("GET");
-    res.writeHead(200);
-    res.write('GET parameters: ' + reqUrl.searchParams);
-    res.end();
-}
-/** handle POST request */
-function postHandler(req, res, reqUrl) {
-    console.log("GET");
-    req.setEncoding('utf8');
-    req.on('data', (chunk) => {
-        res.writeHead(200);
-        res.write('POST parameters: ' + chunk);
-        res.end();
-    });
-}
+const {
+    parse
+} = require('querystring');
 /** if there is no related function which handles the request, then show error message */
 function noResponse(req, res) {
     res.writeHead(404);
@@ -23,12 +9,14 @@ function noResponse(req, res) {
 }
 
 function homeHandler(req, res) {
+    res.setHeader('Content-Type', 'text/html')
     res.writeHead(200);
+
     res.write(`
     <h1>Greetings from server</h1>
-    <form action=>
-        <label>Add User</lable>
-        <input/>
+    <form action='create-user' method='post'>
+        <label for ="name" >Add User</lable>
+        <input id="name" name="name"/>
         <button type='submit'>Add User</button>
     </form>
     `);
@@ -36,10 +24,22 @@ function homeHandler(req, res) {
 }
 
 function createUserHandler(req, res) {
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+    req.on('end', () => {
+        let user = parse(body);
+        console.log(`name:  ${JSON.stringify(user.name)}`)
+    })
+    res.writeHead(302, {
+        'Location': '/'
+    })
     res.end();
 }
 
 function usersHandler(req, res) {
+    res.setHeader('Content-Type', 'text/html');
     res.write(`<html>
     <head></head>
     <body>

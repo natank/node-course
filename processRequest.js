@@ -17,11 +17,10 @@ let processRequest = (req, res) => {
     };
     // parse the url by using WHATWG URL API
     let reqUrl = new URL(req.url, 'http://127.0.0.1/');
-    console.log(req.method + reqUrl.pathname)
     // find the related function by searching "method + pathname" and run it
     let redirectedFunc = router[req.method + reqUrl.pathname] || router['default'];
     redirectedFunc(req, res, reqUrl);
-    console.log(router);
+
 }
 
 module.exports = processRequest;
