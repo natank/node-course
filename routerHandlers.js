@@ -7,13 +7,14 @@ function getHandler(req, res, reqUrl) {
 }
 /** handle POST request */
 function postHandler(req, res, reqUrl) {
+
     console.log("GET");
     req.setEncoding('utf8');
     req.on('data', (chunk) => {
-    res.writeHead(200);
-    res.write('POST parameters: ' + chunk);
-    res.end();
-});
+        res.writeHead(200);
+        res.write('POST parameters: ' + chunk);
+        res.end();
+    });
 }
 /** if there is no related function which handles the request, then show error message */
 function noResponse(req, res) {
@@ -24,7 +25,7 @@ function noResponse(req, res) {
 }
 
 module.exports = {
-    getHandler: getHandler, 
+    getHandler: getHandler,
     postHandler: postHandler,
     noResponse: noResponse
 }
