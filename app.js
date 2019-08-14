@@ -1,24 +1,18 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const r404Routes = require('./routes/404');
 
 const app = express();
 
-app.use('/', (req, res, next)=>{
-    console.log("This always runs!");
-    next();
-})
+app.use(bodyParser.urlencoded({extended: true}))
 
-app.use('/add-product', (req, res, next)=>{
-    console.log('In another middleware');
-    res.send('<h1>The "Add Product" Page</h1>')
-})
+app.use(adminRoutes);
+app.use(shopRoutes);
+app.use(r404Routes);
 
-app.use('/',(req, res, next)=>{
-    console.log('<h1>In another middleware</h1>');
-    res.send('<h1>hello from express</h1>')
-})
-
-
-let processRequest = require('./processRequest');
 
 app.listen(3000, () => {
     console.log('Server is running at http://127.0.0.1:3000/')
