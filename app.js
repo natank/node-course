@@ -2,19 +2,19 @@ const express = require('express');
 
 const app = express();
 
-app.use('/', (req, res, next)=>{
-    console.log("This always runs!");
-    next();
+app.use('/products', (req, res, next)=>{
+    console.log('in products');
+    res.send('<h1>products</h1>');
 })
 
 app.use('/add-product', (req, res, next)=>{
-    console.log('In another middleware');
+    console.log('In add product');
     res.send('<h1>The "Add Product" Page</h1>')
 })
 
 app.use('/',(req, res, next)=>{
     console.log('<h1>In another middleware</h1>');
-    res.send('<h1>hello from express</h1>')
+    res.send('<h1>greeting from express</h1>')
 })
 
 
