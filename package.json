@@ -1,0 +1,22 @@
+{
+  "name": "guide",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/natank/node-course.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/natank/node-course/issues"
+  },
+  "homepage": "https://github.com/natank/node-course#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
