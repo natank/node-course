@@ -7,10 +7,12 @@ const r404Routes = require('./routes/404');
 
 const app = express();
 
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
 
-app.use(adminRoutes);
-app.use(shopRoutes);
+app.use('/admin', adminRoutes);
+app.use('/shop', shopRoutes);
 app.use(r404Routes);
 
 
