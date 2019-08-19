@@ -1,0 +1,17 @@
+nav {
+    
+}
+.navbar {
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+.navbar > li {
+    margin-right: 1rem;
+    list-style-type: none;
+}
+
+navbar li a {
+
+}

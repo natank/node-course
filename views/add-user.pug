@@ -1,0 +1,7 @@
+extends layout.pug
+
+block content
+    form(action="/user", method='POST')
+        label(for="username") username: 
+        input(type="text", id="#username" name="username", placeholder="First name")
+        input(type="submit" value="send") 
