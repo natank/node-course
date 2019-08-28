@@ -9,14 +9,16 @@ exports.getAddProduct = (req, res, next) => {
   });
 };
 
-exports.getEditProduct = (req, res, next) => {
+exports.getEditProduct = async (req, res, next) => {
   const editMode = req.query.edit;
 
   if (!editMode) {
     return res.redirect('/');
   }
   const prodId = req.params.productId;
-  Product.findById(prodId, product => {
+  let product;
+  try{
+    product = await Product.findById(prodId)
     if (!product) {
       return res.redirect('/');
     }
@@ -26,7 +28,9 @@ exports.getEditProduct = (req, res, next) => {
       editing: editMode,
       product: product
     });
-  })
+  } catch(err){
+    console.log(err);
+  }
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -53,33 +57,41 @@ exports.postEditProduct = (req, res, next) => {
   })
 }
 
-exports.postDeleteProduct = (req, res, next) => {
+exports.postDeleteProduct = async (req, res, next) => {
   let prodId = req.params.productId;
-  Product.delete(prodId, err => {
-    if (!err) {
-      Cart.deleteProduct(prodId, (err, () => {
-        res.redirect('/admin/products')
-      }))
-    }
-  });
+  try{
+    await Cart.deleteProduct(prodId)
+    await Product.delete(prodId)
+  } catch(err){
+    console.log(err)
+  }
+  res.redirect('/admin/products')
 }
 
-exports.postAddProduct = (req, res, next) => {
+exports.postAddProduct = async (req, res, next) => {
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
   const product = new Product(title, imageUrl, description, price);
-  product.save();
-  res.redirect('/');
+  try{
+    await product.save();
+    res.redirect('/');
+  } catch(err) {
+    console.log(err);
+  }
 };
 
-exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+exports.getProducts = async (req, res, next) => {
+  let products;
+  try{
+    products = await Product.fetchAll();
     res.render('admin/products', {
-      prods: products,
-      pageTitle: 'Admin Products',
-      path: '/admin/products'
+        prods: products,
+        pageTitle: 'Admin Products',
+        path: '/admin/products'
     });
-  });
-};
+  } catch(err) {
+    console.log(err);
+  }
+}
