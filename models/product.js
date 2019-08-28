@@ -8,17 +8,17 @@ const p = path.join(
 );
 
 const getProductsFromFile = () => {
-  let fsPromise = new Promise((resolve, reject)=>{
+  let fsPromise = new Promise((resolve, reject) => {
     fs.readFile(p, (err, fileContent) => {
-      if(err) reject(err);
-      else{
+      if (err) reject(err);
+      else {
         let parsedContent = JSON.parse(fileContent);
         resolve(parsedContent)
       }
     });
   })
   return fsPromise;
-  
+
 };
 
 module.exports = class Product {
@@ -31,36 +31,36 @@ module.exports = class Product {
 
   save() {
     this.id = Math.random().toString();
-    let savePromise = new Promise(async (resolve, reject)=>{
+    let savePromise = new Promise(async (resolve, reject) => {
       let products;
-      try{
+      try {
         products = await getProductsFromFile();
         products.push(this);
         fs.writeFile(p, JSON.stringify(products), err => {
-          if(err) throw(err);
+          if (err) throw (err);
         });
         resolve(products);
-      } catch(err){
+      } catch (err) {
         reject(err)
       }
     })
-    return savePromise          
+    return savePromise
   }
 
   static delete(id) {
-    let deletePrmise = new Promise(async (resolve, reject)=>{
+    let deletePrmise = new Promise(async (resolve, reject) => {
 
       let products;
-      try{
+      try {
         products = await getProductsFromFile();
-      } catch(err){
+      } catch (err) {
         reject(err)
       }
       const result = products.filter(product => product.id !== id);
-      try{
+      try {
         await this.saveAll(result, cb);
         resolve();
-      } catch(err){
+      } catch (err) {
         reject(err);
       }
     })
@@ -74,26 +74,26 @@ module.exports = class Product {
 
   static findById(id) {
     let products;
-    let findPromise = new Promise(async (resolve, reject)=>{
-      try{
+    let findPromise = new Promise(async (resolve, reject) => {
+      try {
         products = await getProductsFromFile()
         let product;
         product = products.find(p => p.id === id);
         resolve(product);
-      } catch(err){
+      } catch (err) {
         reject(err);
       };
     })
     return findPromise;
-    
+
   }
 
   static saveAll(products, cb) {
-    let savePromise = new Promise((resolve, reject)=>{
-      try{
+    let savePromise = new Promise((resolve, reject) => {
+      try {
         fs.writeFile(p, JSON.stringify(products), err => cb(err))
         resolve();
-      } catch(err){
+      } catch (err) {
         reject(err)
       }
     })
