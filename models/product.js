@@ -9,11 +9,7 @@ const p = path.join(
 
 const getProductsFromFile = cb => {
   fs.readFile(p, (err, fileContent) => {
-    if (err) {
-      cb([]);
-    } else {
-      cb(JSON.parse(fileContent));
-    }
+    cb(err, JSON.parse(fileContent));
   });
 };
 
@@ -26,6 +22,7 @@ module.exports = class Product {
   }
 
   save() {
+
     this.id = Math.random().toString();
     getProductsFromFile(products => {
       products.push(this);
@@ -35,14 +32,28 @@ module.exports = class Product {
     });
   }
 
+  static delete(id, cb) {
+    getProductsFromFile((products) => {
+      const result = products.filter(product => product.id !== id);
+      this.saveAll(result, cb);
+    })
+  }
+
   static fetchAll(cb) {
     getProductsFromFile(cb);
   }
 
   static findById(id, cb) {
-    getProductsFromFile(products => {
-      const product = products.find(p => p.id === id);
-      cb(product);
+    getProductsFromFile((err, products) => {
+      let product;
+      if (!err) {
+        product = products.find(p => p.id === id);
+      }
+      cb(err, product);
     });
+  }
+
+  static saveAll(products, cb) {
+    fs.writeFile(p, JSON.stringify(products), err => cb(err))
   }
 };
