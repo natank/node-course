@@ -25,11 +25,11 @@ module.exports = class Cart {
 
   static saveCart(cart) {
     let savePromise = new Promise((resolve, reject)=>{
-      let cart;
       try{
         fs.writeFile(p, JSON.stringify(cart), err=> {
           if(err) throw err
         })
+        resolve();
       } catch(err){
         console.log(err);
       }
@@ -86,7 +86,7 @@ module.exports = class Cart {
         reject(err)
       }
       
-      let productToDelete = cart.find(product=> product.id === id);
+      let productToDelete = cart.products.find(product=> product.id === id);
       if(productToDelete){
         cart.totalPrice -= productToDelete.price*productToDelete.qty;
         cart.products = cart.products.filter(item => item.id != id);
@@ -94,6 +94,7 @@ module.exports = class Cart {
       
       try{
         await this.saveCart(cart)
+        resolve();
       }catch(err){
         reject(err)
       }

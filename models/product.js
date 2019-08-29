@@ -58,7 +58,7 @@ module.exports = class Product {
       }
       const result = products.filter(product => product.id !== id);
       try {
-        await this.saveAll(result, cb);
+        await this.saveAll(result);
         resolve();
       } catch (err) {
         reject(err);
@@ -88,10 +88,10 @@ module.exports = class Product {
 
   }
 
-  static saveAll(products, cb) {
+  static saveAll(products) {
     let savePromise = new Promise((resolve, reject) => {
       try {
-        fs.writeFile(p, JSON.stringify(products), err => cb(err))
+        fs.writeFile(p, JSON.stringify(products), err => {if(err) throw err})
         resolve();
       } catch (err) {
         reject(err)
