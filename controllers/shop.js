@@ -2,34 +2,44 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = async (req, res, next) => {
-  try{
+  try {
     let [rows, fieldData] = await Product.fetchAll();
     res.render('shop/product-list', {
       prods: rows,
       pageTitle: 'All Products',
       path: '/products'
     });
-  } catch(err){
+  } catch (err) {
     console.log(err);
   }
-  
+
 };
 
-exports.getProduct = (req, res, next) => {
+exports.getProduct = async (req, res, next) => {
   const prodId = req.params.productId;
-  Product.findById(prodId, product => {
-    res.render('shop/product-detail', {
-      product: product,
-      pageTitle: product.title,
-      path: '/products'
-    });
-  });
+  let product;
+  try {
+    [product] = await Product.findById(prodId)
+    product = product[0];
+    if (product) {
+      let title = product.title
+      res.render('shop/product-detail', {
+        product: product,
+        pageTitle: title,
+        path: '/products'
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+
 };
 
 exports.getIndex = async (req, res, next) => {
-  try{
+  let rows, fieldData;
+  try {
     [rows, fieldData] = await Product.fetchAll();
-  } catch(err){
+  } catch (err) {
     console.log(err);
   }
   res.render('shop/index', {
@@ -48,7 +58,10 @@ exports.getCart = (req, res, next) => {
           prod => prod.id === product.id
         );
         if (cartProductData) {
-          cartProducts.push({ productData: product, qty: cartProductData.qty });
+          cartProducts.push({
+            productData: product,
+            qty: cartProductData.qty
+          });
         }
       }
       res.render('shop/cart', {

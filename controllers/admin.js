@@ -14,11 +14,10 @@ exports.postAddProduct = async (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
   const product = new Product(null, title, imageUrl, description, price);
-  try{
+  try {
 
     await product.save();
-    res.redirect('/')
-  }catch(err){
+  } catch (err) {
     console.log(err)
   }
   res.redirect('/');

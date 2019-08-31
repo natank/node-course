@@ -1,4 +1,4 @@
-const db = require('../util/database'); 
+const db = require('../util/database');
 const Cart = require('./cart');
 
 
@@ -14,18 +14,19 @@ module.exports = class Product {
 
   save() {
     return db.execute('INSERT INTO products (title, price, imageUrl, description) VALUES(?,?,?,?)',
-    [this.title, this.price, this.imageUrl, this.description]);
+      [this.title, this.price, this.imageUrl, this.description]);
   }
 
   static deleteById(id) {
-    
+
   }
 
   static fetchAll() {
-    return db.execute('SELECT * FROM products');
+    let products = db.execute('SELECT * FROM products');
+    return products;
   }
 
   static findById(id) {
-    return db.execute('SELECT * FROM products WHERE ')
+    return db.execute('SELECT * FROM products WHERE id = ?', [id])
   }
 };
