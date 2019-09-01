@@ -1,12 +1,15 @@
-const mysql = require('mysql2');
+// Refference only
+//     host: 'remotemysql.com',
+//     port: 3306,
+//     user: '1C0uYToL7X',
+//     database: '1C0uYToL7X',
+//     password: 'eSJUktxS0j'
 
-const pool = mysql.createPool({
-    host: 'remotemysql.com',
-    port: 3306,
-    user: '1C0uYToL7X',
-    database: '1C0uYToL7X',
-    password: 'eSJUktxS0j'
-});
-db = pool.promise();
+const Sequelize = require('sequelize');
 
-module.exports = db;
+const sequelize = new Sequelize('1C0uYToL7X', '1C0uYToL7X', 'eSJUktxS0j', {
+    dialect: 'mysql',
+    host: 'remotemysql.com'
+})
+
+module.exports = sequelize;
