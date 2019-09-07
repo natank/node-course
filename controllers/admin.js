@@ -8,14 +8,19 @@ exports.getAddProduct = (req, res, next) => {
   });
 };
 
-exports.postAddProduct = (req, res, next) => {
+exports.postAddProduct = async (req, res, next) => {
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
   const product = new Product(null, title, imageUrl, description, price);
-  product.save();
-  res.redirect('/');
+  try {
+    await product.save();
+    res.redirect('/');
+  } catch (err) {
+    console.log(`error in admin.js postAddProducts: ${err}`)
+  }
+
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -54,14 +59,18 @@ exports.postEditProduct = (req, res, next) => {
   res.redirect('/admin/products');
 };
 
-exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+exports.getProducts = async (req, res, next) => {
+  let products, fieldData;
+  try {
+    [products, fieldData] = await Product.fetchAll();
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
-  });
+  } catch (err) {
+    console.log(err)
+  }
 };
 
 exports.postDeleteProduct = (req, res, next) => {
