@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 
 const sequelize = new Sequelize('x7vPyduhJ8', 'x7vPyduhJ8', 'rp99Ng7xJq', {
   host: 'remotemysql.com',
-  dialect: 'mysql '
+  dialect: 'mysql'
 });
 
 module.exports = sequelize;
