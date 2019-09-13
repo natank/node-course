@@ -2,9 +2,9 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = async (req, res, next) => {
-  let products, fieldData;
+  let products;
   try {
-    [products, fieldData] = await Product.fetchAll();
+    products = await Product.findAll();
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
@@ -19,10 +19,10 @@ exports.getProduct = async (req, res, next) => {
   const prodId = req.params.productId;
   let product;
   try {
-    product = await Product.findById(prodId)
+    product = await Product.findByPk(prodId)
     res.render('shop/product-detail', {
-      product: product[0],
-      pageTitle: product[0].title,
+      product: product,
+      pageTitle: product.title,
       path: '/products'
     })
   } catch (err) {
@@ -32,9 +32,9 @@ exports.getProduct = async (req, res, next) => {
 
 
 exports.getIndex = async (req, res, next) => {
-  let products, fieldData;
+  let products;
   try {
-    [products, fieldData] = await Product.fetchAll();
+    products = await Product.findAll();
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
@@ -74,7 +74,7 @@ exports.getCart = async (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findById(prodId, product => {
+  Product.findByPk(prodId, product => {
     Cart.addProduct(prodId, product.price);
   });
   res.redirect('/cart');
@@ -82,7 +82,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findById(prodId, product => {
+  Product.findByPk(prodId, product => {
     Cart.deleteProduct(prodId, product.price);
     res.redirect('/cart');
   });
