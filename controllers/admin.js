@@ -18,14 +18,16 @@ exports.postAddProduct = async (req, res, next) => {
     ...req.body
   };
 
-  let prod = new Product({
+  let prod = new Product(
     title,
     price,
     description,
     imageUrl
-  })
+  )
 
-  prod.save();
+  await prod.save();
+  console.log('Created Product');
+  res.redirect('/admin/products')
 
 };
 

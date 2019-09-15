@@ -12,7 +12,7 @@ class Product {
     const db = getDb();
     try {
       let result = await db.collection('products').insertOne(this)
-      console.log(result);
+      // console.log(result);
     } catch (err) {
       console.log(err)
     }
@@ -20,7 +20,7 @@ class Product {
   static async fetchAll() {
     const db = getDb();
     try {
-      let products = db.collection('products').find();
+      let products = await db.collection('products').find().toArray();
       console.log(products);
       let p = new Promise((resolve, reject) => {
         resolve(products)
