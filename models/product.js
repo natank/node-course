@@ -1,3 +1,4 @@
+const mongodb = require('mongodb');
 const getDb = require('../util/database').getDb;
 
 class Product {
@@ -24,6 +25,27 @@ class Product {
       console.log(products);
       let p = new Promise((resolve, reject) => {
         resolve(products)
+      })
+      return p;
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  static async findById(prodId) {
+    const db = getDb();
+    try {
+      let id11 = new mongodb.ObjectId(prodId)
+      console.log(`prodId = ${prodId}`)
+      console.log(`id11 = ${id11}`)
+      let product = await db.collection('product').find({
+          _id: new mongodb.ObjectId(prodId)
+        })
+        .next()
+
+      console.log(`product = ${product}`);
+      let p = new Promise((resolve, reject) => {
+        resolve(product);
       })
       return p;
     } catch (err) {

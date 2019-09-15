@@ -7,8 +7,8 @@ let _db;
 
 const mongoConnect = async () => {
   try {
-    // let client = await MongoClient.connect('mongodb://nathank:windows10@ds063158.mlab.com:63158/online-store')
-    let client = await MongoClient.connect('mongodb://localhost:27017/local')
+    let client = await MongoClient.connect('mongodb://nathank:windows10@ds063158.mlab.com:63158/online-store')
+    // let client = await MongoClient.connect('mongodb://localhost:27017/local')
     _db = client.db();
     console.log('Connected!')
     let p = new Promise((resolve, reject) => {

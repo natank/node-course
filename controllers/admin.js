@@ -27,7 +27,7 @@ exports.postAddProduct = async (req, res, next) => {
 
   await prod.save();
   console.log('Created Product');
-  res.redirect('/admin/products')
+  res.redirect('/products')
 
 };
 
