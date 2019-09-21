@@ -2,12 +2,13 @@ const mongodb = require('mongodb');
 const getDb = require('../util/database').getDb;
 
 class Product {
-  constructor(title, price, description, imageUrl, id) {
+  constructor(title, price, description, imageUrl, id = null, userId = null) {
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
     this._id = id ? new mongodb.ObjectId(id) : null;
+    this.userId = userId;
   }
 
   save() {
@@ -26,9 +27,7 @@ class Product {
       dbOp = db.collection('products').insertOne(this);
     }
     return dbOp
-      .then(result => {
-        console.log(result);
-      })
+      .then(result => {})
       .catch(err => {
         console.log(err);
       });
@@ -41,7 +40,6 @@ class Product {
       .find()
       .toArray()
       .then(products => {
-        console.log(products);
         return products;
       })
       .catch(err => {
@@ -58,7 +56,6 @@ class Product {
       })
       .next()
       .then(product => {
-        console.log(product);
         return product;
       })
       .catch(err => {
@@ -73,9 +70,7 @@ class Product {
       .deleteOne({
         _id: new mongodb.ObjectId(prodId)
       })
-      .then(result => {
-        console.log('Deleted');
-      })
+      .then(result => {})
       .catch(err => {
         console.log(err);
       });

@@ -21,23 +21,24 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
-  User.findById(1)
-    .then(user => {
-      req.user = user;
-      next();
-    })
-    .catch(err => console.log(err));
-  next();
-});
+/* find user */
+app.use(async (req, res, next) => {
+  try {
+    let user = await User.findById('5d8485cce7179a0c79f0ed8f');
+    req.user = new User(user.name, user.email, user.cart, user._id);
+    next();
+  } catch (err) {
+    console.log(err)
+  }
+})
+
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-let user = new User("Nati", 'natan.kamusher@gmail.com');
-user.save();
+
 
 mongoConnect(() => {
   app.listen(3000);

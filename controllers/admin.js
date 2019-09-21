@@ -13,7 +13,7 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(title, price, description, imageUrl);
+  const product = new Product(title, price, description, imageUrl, null, req.user._id);
   product
     .save()
     .then(result => {
@@ -27,6 +27,7 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getEditProduct = (req, res, next) => {
+  console.log(req.user);
   const editMode = req.query.edit;
   if (!editMode) {
     return res.redirect('/');
@@ -83,8 +84,10 @@ exports.getProducts = (req, res, next) => {
     .catch(err => console.log(err));
 };
 
-exports.postDeleteProduct = (req, res, next) => {
+exports.postDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
+  await req.user.removeFromCart(prodId);
+
   Product.deleteById(prodId)
     .then(() => {
       console.log('DESTROYED PRODUCT');
