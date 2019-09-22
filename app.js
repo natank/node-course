@@ -21,7 +21,8 @@ connect();
 function createUser() {
   User.create({
     name: "alon",
-    email: "along@gmail.com"
+    email: "along@gmail.com",
+    cart: []
   })
 }
 

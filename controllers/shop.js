@@ -1,6 +1,7 @@
 const getDb = require('../util/database').getDb;
 const Product = require('../models/product');
 const User = require('../models/user');
+const mongoose = require('mongoose');
 
 exports.getProducts = async (req, res, next) => {
   try {
@@ -45,7 +46,7 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let products = await req.user.getCart();
+    let products = await req.user.cart;
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
@@ -61,64 +62,40 @@ exports.postCart = async (req, res, next) => {
   let user = req.user;
   let userId = req.user._id;
   try {
-    let productInCart = await user.find({
-      'cart.productId': {
-        $eq: prodId
-      }
-    })
-    console.log(`product=${productInCart}`)
 
-    let result = await User.update({
-      "_id": userId
-    }, {
-      "$push": {
-        "cart": {
-          "productId": prodId,
-          "quantity": 1
-        }
-      }
-    })
-    console.log(result)
+    // is product in cart?
+    let item = user.cart.find(item => item.productId == prodId)
+
+    // product in cart - increase quantity
+    if (item) {
+      console.log("product exists")
+      item.quantity += 1
+    } else {
+      // product not in cart - add product to cart (quantity 1)
+      user.cart.push({
+        productId: prodId,
+        quantity: 1
+      })
+      console.log("product does not exist")
+    }
+    await user.save()
     res.redirect('/cart')
   } catch (err) {
     console.log(err)
   }
-  // let fetchedCart;
-  // let newQuantity = 1;
-  // req.user
-  //   .getCart()
-  //   .then(cart => {
-  //     fetchedCart = cart;
-  //     return cart.getProducts({ where: { id: prodId } });
-  //   })
-  //   .then(products => { // products in the cart
-  //     let product;
-  //     if (products.length > 0) { // product is in the cart
-  //       product = products[0];
-  //     }
+}
 
-  //     if (product) { // product is already in the cart
-  //       const oldQuantity = product.cartItem.quantity;
-  //       newQuantity = oldQuantity + 1;
-  //       return product;
-  //     }
-  //     return Product.findById(prodId); // product is not in the cart 
-  //   })
-  //   .then(product => {
-  //     return fetchedCart.addProduct(product, {
-  //       through: { quantity: newQuantity }
-  //     });
-  //   })
-  //   .then(() => {
-  //     res.redirect('/cart');
-  //   })
-  //   .catch(err => console.log(err));
-};
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
+  let user = req.user;
+  user.cart = user.cart.filter(item => {
+    console.log(`productId: ${item.productId}, prodId: ${mongoose.Schema.Types.ObjectId(prodId)}`)
+    return item.productId !== mongoose.Types.ObjectId(prodId)
+
+  })
   try {
-    let result = await req.user.removeFromCart(prodId);
+    await user.save();
     res.redirect('/cart');
   } catch (err) {
     console.log(err)
