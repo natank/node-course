@@ -12,35 +12,34 @@ exports.getProducts = async (req, res, next) => {
       path: '/products'
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-
 };
 
 exports.getProduct = async (req, res, next) => {
   const prodId = req.params.productId;
   try {
-    const product = await Product.findById(prodId)
+    const product = await Product.findById(prodId);
     res.render('shop/product-detail', {
       product: product,
       pageTitle: product.title,
       path: '/products'
     });
   } catch (err) {
-    console.log(err)
-  };
+    console.log(err);
+  }
 };
 
 exports.getIndex = async (req, res, next) => {
   try {
-    let products = await Product.find()
+    let products = await Product.find();
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
       path: '/'
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 };
 
@@ -53,52 +52,47 @@ exports.getCart = async (req, res, next) => {
       products: products
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-}
+};
 
 exports.postCart = async (req, res, next) => {
   const prodId = req.body.productId;
   let user = req.user;
   let userId = req.user._id;
   try {
-
     // is product in cart?
-    let item = user.cart.find(item => item.productId == prodId)
+    let item = user.cart.find(item => item.productId.toString() == prodId.toString());
 
     // product in cart - increase quantity
     if (item) {
-      console.log("product exists")
-      item.quantity += 1
+      item.quantity += 1;
     } else {
       // product not in cart - add product to cart (quantity 1)
       user.cart.push({
         productId: prodId,
         quantity: 1
-      })
-      console.log("product does not exist")
+      });
     }
-    await user.save()
-    res.redirect('/cart')
+    await user.save();
+    res.redirect('/cart');
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-}
-
+};
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
   let user = req.user;
   user.cart = user.cart.filter(item => {
-    console.log(`productId: ${item.productId}, prodId: ${mongoose.Schema.Types.ObjectId(prodId)}`)
-    return item.productId !== mongoose.Types.ObjectId(prodId)
-
-  })
+    let removeThisItem = item.productId.toString() !== prodId;
+    return removeThisItem;
+  });
   try {
     await user.save();
     res.redirect('/cart');
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 };
 
@@ -121,7 +115,6 @@ exports.getOrders = async (req, res, next) => {
       orders: orders
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-
-}
+};
