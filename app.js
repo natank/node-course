@@ -8,7 +8,7 @@ const mongoConnect = require('./util/database').mongoConnect;
 const app = express();
 const errorController = require('./controllers/error');
 /**Models */
-const User = require('./models/user')
+const User = require('./models/user').User
 /**Routes */
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -16,13 +16,14 @@ const shopRoutes = require('./routes/shop');
 
 setMiddleware();
 connect();
-// createUser()
+//createUser()
 
 function createUser() {
   User.create({
     name: "alon",
     email: "along@gmail.com",
-    cart: []
+    cart: [],
+    orders: []
   })
 }
 

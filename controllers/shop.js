@@ -1,11 +1,14 @@
 const getDb = require('../util/database').getDb;
 const Product = require('../models/product');
-const User = require('../models/user');
+const User = require('../models/user').User;
+const CartItem = require('../models/user').CartItem;
+
 const mongoose = require('mongoose');
 
 exports.getProducts = async (req, res, next) => {
   try {
-    let products = await Product.find();
+    let products = await Product.find().populate('userId');
+    console.log(products);
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
@@ -45,7 +48,14 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let products = await req.user.cart;
+    let user = await User.findOne().populate('cart');
+    // .populate({
+    //   path: 'cart',
+    // populate: {
+    //   path: 'product'
+    //   // }
+    // });
+    let products = user.cart;
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
@@ -58,34 +68,24 @@ exports.getCart = async (req, res, next) => {
 
 exports.postCart = async (req, res, next) => {
   const prodId = req.body.productId;
-  let user = req.user;
-  let userId = req.user._id;
   try {
-    // is product in cart?
-    let item = user.cart.find(item => item.productId.toString() == prodId.toString());
-
-    // product in cart - increase quantity
-    if (item) {
-      item.quantity += 1;
-    } else {
-      // product not in cart - add product to cart (quantity 1)
-      user.cart.push({
-        productId: prodId,
-        quantity: 1
-      });
-    }
-    await user.save();
+    const product = await Product.findById(prodId);
+    let result = await req.user.addToCart(product);
+    console.log(result);
     res.redirect('/cart');
   } catch (err) {
-    console.log(err);
+    console.log(err)
   }
+
 };
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
-  let user = req.user;
+  let user = await User.findOne().populate({
+    path: 'cart',
+  });
   user.cart = user.cart.filter(item => {
-    let removeThisItem = item.productId.toString() !== prodId;
+    let removeThisItem = item.product._id.toString() !== prodId;
     return removeThisItem;
   });
   try {
