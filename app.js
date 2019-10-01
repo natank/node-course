@@ -12,7 +12,7 @@ const User = require('./models/user').User
 /**Routes */
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
-
+const authRoutes = require('./routes/auth');
 
 setMiddleware();
 connect();
@@ -50,6 +50,7 @@ function setMiddleware() {
 
   app.use('/admin', adminRoutes);
   app.use(shopRoutes);
+  app.use(authRoutes)
 
   app.use(errorController.get404);
 }
