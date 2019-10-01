@@ -48,23 +48,21 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let user = await User.findOne().populate({
-      path: 'cart',
-      populate: {
-        path: 'items'
+    let user = await req.user.populate({
+      path: 'cart.item.product',
+    }).execPopulate();
+
+    let uiCart = user.cart.map(elem => {
+      let cartItem = {
+        product: elem.item.product,
+        quantity: elem.item.quantity
       }
+      return cartItem;
     });
-    // .populate({
-    //   path: 'cart',
-    // populate: {
-    //   path: 'product'
-    //   // }
-    // });
-    let products = user.cart;
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
-      products: products
+      cart: uiCart
     });
   } catch (err) {
     console.log(err);
@@ -86,9 +84,7 @@ exports.postCart = async (req, res, next) => {
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
-  let user = await User.findOne().populate({
-    path: 'cart',
-  });
+  let user = req.user //await User.findOne();
   user.cart = user.cart.filter(item => {
     let removeThisItem = item.product._id.toString() !== prodId;
     return removeThisItem;
@@ -114,10 +110,24 @@ exports.getOrders = async (req, res, next) => {
   let orders;
   try {
     orders = await req.user.getOrders();
+    let uiOrders = orders.map(elem => {
+      let order = {}
+      order._id = elem._id;
+      order.items = elem.order.map(item => {
+        let prod = {
+          title: item.item.product.title,
+          quantity: item.item.quantity
+        }
+        return prod
+      });
+      return order;
+
+    })
+
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
-      orders: orders
+      orders: uiOrders
     });
   } catch (err) {
     console.log(err);
