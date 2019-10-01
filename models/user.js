@@ -6,11 +6,12 @@ const cartItemSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Product'
   },
-  quantity: Number
+  quantity: {
+    type: Number,
+    required: true
+  }
 });
-cartItemSchema.pre('save', (next) => {
-  console.log('cart item saved');
-})
+
 const CartItem = mongoose.model('CartItem', cartItemSchema);
 
 const orderSchema = new Schema({
@@ -30,19 +31,10 @@ const userSchema = new Schema({
     type: String,
     required: true
   },
-  cart: {
-    items: [{
-      productId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true
-      },
-      quantity: {
-        type: Number,
-        required: true
-      }
-    }]
-  },
+  cart: [{
+    type: Schema.Types.ObjectId,
+    ref: 'CartItem'
+  }],
   orders: {
     type: [{
       type: Schema.Types.ObjectId,
@@ -52,32 +44,63 @@ const userSchema = new Schema({
   }
 })
 
-userSchema.methods.addToCart = function (product) {
-  const cartProductIndex = this.cart.items.findIndex(cp => {
-    return cp.productId.toString() === product._id.toString();
+
+
+userSchema.methods.addToCart = async function (product) {
+  const user = await User.findOne().populate({
+    path: 'cart',
+    populate: {
+      path: 'product'
+    }
+  })
+
+  console.log(`found user:\n${user.cart[0].product}`)
+
+  const cartItemIndex = user.cart.findIndex(cp => {
+    return cp.product._id.toString() === product._id.toString();
   });
   let newQuantity = 1;
-  const updatedCartItems = [...this.cart.items];
 
-  if (cartProductIndex >= 0) {
-    newQuantity = this.cart.items[cartProductIndex].quantity + 1;
-    updatedCartItems[cartProductIndex].quantity = newQuantity;
-  } else {
-    updatedCartItems.push({
-      productId: product._id,
-      quantity: newQuantity
+
+  let cartItem;
+  try {
+    if (cartItemIndex >= 0) {
+      cartItem = await CartItem.findById(user.cart[cartItemIndex]);
+      cartItem.quantity += 1
+      cartItem = await cartItem.save();
+      console.log(`cart item saved:\n${cartItem}`)
+    } else {
+      cartItem = new CartItem({
+        product: product._id,
+        quantity: newQuantity
+      })
+      cartItem = await cartItem.save();
+
+
+      this.cart.push(cartItem._id)
+
+      try {
+        await this.save();
+      } catch (err) {
+        let p = new Promise((resolve, reject) => {
+          reject(`error saving cart item:\n${err}`)
+        })
+        return p;
+      }
+    }
+    let p = new Promise((resolve, reject) => {
+      resolve();
     })
+    return p;
+  } catch (err) {
+    let p = new Promise((resolve, reject) => {
+      reject(err);
+    })
+    return p;
   }
-
-  const updatedCart = {
-    items: updatedCartItems
-  }
-  this.cart = updatedCart;
-  return this.save();
-
 }
-
-exports.User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+exports.User = User;
 
 
 //   /** User methods */

@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 exports.getProducts = async (req, res, next) => {
   try {
     let products = await Product.find().populate('userId');
-    console.log(products);
+
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
@@ -48,7 +48,12 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let user = await User.findOne().populate('cart');
+    let user = await User.findOne().populate({
+      path: 'cart',
+      populate: {
+        path: 'items'
+      }
+    });
     // .populate({
     //   path: 'cart',
     // populate: {
@@ -71,7 +76,7 @@ exports.postCart = async (req, res, next) => {
   try {
     const product = await Product.findById(prodId);
     let result = await req.user.addToCart(product);
-    console.log(result);
+    // console.log(result);
     res.redirect('/cart');
   } catch (err) {
     console.log(err)
