@@ -6,11 +6,13 @@ var mongoose = require('mongoose');
 /* connect */
 let _db;
 
+let _dbURI = 'mongodb://nati:welcome10@ds123399.mlab.com:23399/shop1'
+// 'mongodb://localhost:27017/local'
+
+
 async function mongoConnect() {
   try {
-    await mongoose.connect('mongodb://nati:welcome10@ds123399.mlab.com:23399/shop1'
-      // 'mongodb://localhost:27017/local'
-    );
+    await mongoose.connect(_dbURI);
     console.log("connected")
 
     _db = mongoose.connection;
@@ -38,3 +40,4 @@ const getDb = () => {
 
 exports.mongoConnect = mongoConnect;
 exports.getDb = getDb;
+exports.dbURI = _dbURI;

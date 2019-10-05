@@ -12,7 +12,8 @@ exports.getProducts = async (req, res, next) => {
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
-      path: '/products'
+      path: '/products',
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);
@@ -26,7 +27,8 @@ exports.getProduct = async (req, res, next) => {
     res.render('shop/product-detail', {
       product: product,
       pageTitle: product.title,
-      path: '/products'
+      path: '/products',
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);
@@ -39,7 +41,8 @@ exports.getIndex = async (req, res, next) => {
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
-      path: '/'
+      path: '/',
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);
@@ -48,7 +51,7 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let user = await req.user.populate({
+    let user = await req.session.user.populate({
       path: 'cart.item.product',
     }).execPopulate();
 
@@ -62,7 +65,8 @@ exports.getCart = async (req, res, next) => {
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
-      cart: uiCart
+      cart: uiCart,
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);
@@ -73,7 +77,7 @@ exports.postCart = async (req, res, next) => {
   const prodId = req.body.productId;
   try {
     const product = await Product.findById(prodId);
-    let result = await req.user.addToCart(product);
+    let result = await req.session.user.addToCart(product);
     // console.log(result);
     res.redirect('/cart');
   } catch (err) {
@@ -84,7 +88,7 @@ exports.postCart = async (req, res, next) => {
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
-  let user = req.user //await User.findOne();
+  let user = req.session.user //await User.findOne();
   user.cart = user.cart.filter(item => {
     let removeThisItem = item.product._id.toString() !== prodId;
     return removeThisItem;
@@ -99,7 +103,7 @@ exports.postCartDeleteProduct = async (req, res, next) => {
 
 exports.postOrder = async (req, res, next) => {
   try {
-    await req.user.addOrder();
+    await req.session.user.addOrder();
     res.redirect('/orders');
   } catch (err) {
     console.log(err);
@@ -109,7 +113,7 @@ exports.postOrder = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   let orders;
   try {
-    orders = await req.user.getOrders();
+    orders = await req.session.user.getOrders();
     let uiOrders = orders.map(elem => {
       let order = {}
       order._id = elem._id;
@@ -127,7 +131,8 @@ exports.getOrders = async (req, res, next) => {
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
-      orders: uiOrders
+      orders: uiOrders,
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);

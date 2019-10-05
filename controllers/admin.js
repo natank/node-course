@@ -4,7 +4,8 @@ exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
-    editing: false
+    editing: false,
+    isLoggedIn: req.session.isLoggedIn
   });
 };
 
@@ -13,13 +14,15 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const userId = req.user._id
+  const userId = req.session.user._id
+  const isLoggedIn = req.session.isLoggedIn;
   const product = new Product({
     title,
     price,
     description,
     imageUrl,
-    userId
+    userId,
+    isLoggedIn
   });
   product
     .save()
@@ -49,7 +52,8 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
-        product: product
+        product: product,
+        isLoggedIn: req.session.isLoggedIn
       });
     })
     .catch(err => console.log(err));
@@ -70,6 +74,7 @@ exports.postEditProduct = async (req, res, next) => {
     imageUrl
   })
   console.log(result);
+  res.redirect('/admin/')
 };
 
 exports.getProducts = async (req, res, next) => {
@@ -78,7 +83,8 @@ exports.getProducts = async (req, res, next) => {
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
-      path: '/admin/products'
+      path: '/admin/products',
+      isLoggedIn: req.session.isLoggedIn
     });
   } catch (err) {
     console.log(err);

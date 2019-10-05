@@ -3,12 +3,20 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoConnect = require('./util/database').mongoConnect;
+const MONGODB_URI = require('./util/database').dbURI;
+
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 /**App controll*/
 const app = express();
+const store = new MongoDBStore({
+  uri: MONGODB_URI,
+  collection: 'sessions'
+})
 const errorController = require('./controllers/error');
 /**Models */
-const User = require('./models/user').User
+// const User = require('./models/user').User
 /**Routes */
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -36,16 +44,14 @@ function setMiddleware() {
   }));
   app.use(express.static(path.join(__dirname, 'public')));
 
-  /* find user */
-  app.use(async (req, res, next) => {
-    try {
-      let user = await User.findOne();
-      req.user = user;
-      next();
-    } catch (err) {
-      console.log(err)
-    }
-  })
+  //Define session middleware
+  app.use(session({
+    secret: 'my secret',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+  }))
+
 
 
   app.use('/admin', adminRoutes);
