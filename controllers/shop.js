@@ -1,6 +1,6 @@
 const getDb = require('../util/database').getDb;
 const Product = require('../models/product');
-const User = require('../models/user').User;
+const User = require('../models/user');
 const CartItem = require('../models/user').CartItem;
 
 const mongoose = require('mongoose');
@@ -51,7 +51,7 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    let user = await req.session.user.populate({
+    let user = await req.user.populate({
       path: 'cart.item.product',
     }).execPopulate();
 
@@ -77,7 +77,7 @@ exports.postCart = async (req, res, next) => {
   const prodId = req.body.productId;
   try {
     const product = await Product.findById(prodId);
-    let result = await req.session.user.addToCart(product);
+    let result = await req.user.addToCart(product);
     // console.log(result);
     res.redirect('/cart');
   } catch (err) {
@@ -88,7 +88,7 @@ exports.postCart = async (req, res, next) => {
 
 exports.postCartDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
-  let user = req.session.user //await User.findOne();
+  let user = req.user //await User.findOne();
   user.cart = user.cart.filter(item => {
     let removeThisItem = item.product._id.toString() !== prodId;
     return removeThisItem;

@@ -46,7 +46,7 @@ const userSchema = new Schema({
 
 userSchema.methods.addToCart = async function (product) {
 
-  let user = req.user;
+  let user = this;
   let cart = [...user.cart]
 
 
@@ -137,7 +137,7 @@ userSchema.methods.getOrders = function () {
 
 
 const User = mongoose.model('User', userSchema);
-exports.User = User;
+module.exports = User;
 
 
 //   /** User methods */

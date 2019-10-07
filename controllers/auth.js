@@ -1,7 +1,7 @@
-let User = require('../models/user').User;
+let User = require('../models/user');
 
 exports.getLogin = async (req, res, next) => {
-  console.log(req.session.isLoggedIn);
+  
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
@@ -12,6 +12,7 @@ exports.getLogin = async (req, res, next) => {
 exports.postLogin = async (req, res, next) => {
   try {
     req.session.user = await User.findOne()
+    await req.session.save();
     req.session.isLoggedIn = true;
     res.redirect('/');
   } catch (err) {

@@ -7,6 +7,7 @@ const MONGODB_URI = require('./util/database').dbURI;
 
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const User = require('./models/user')
 
 /**App controll*/
 const app = express();
@@ -51,6 +52,17 @@ function setMiddleware() {
     saveUninitialized: false,
     store: store
   }))
+
+  app.use(async (req,res,next)=>{
+    try{
+      if(req.session.user){
+        req.user = await User.findOne({_id: req.session.user._id})
+      }
+      next()
+    } catch(err){
+      console.log(err)
+    }
+  })
 
 
 

@@ -6,8 +6,8 @@ var mongoose = require('mongoose');
 /* connect */
 let _db;
 
-let _dbURI = 'mongodb://nati:welcome10@ds123399.mlab.com:23399/shop1'
-// 'mongodb://localhost:27017/local'
+// let _dbURI = 'mongodb://nati:welcome10@ds123399.mlab.com:23399/shop1'
+let _dbURI = 'mongodb://localhost:27017/local'
 
 
 async function mongoConnect() {
