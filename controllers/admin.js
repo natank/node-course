@@ -62,7 +62,8 @@ exports.postEditProduct = async (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const description = req.body.description;
   let result = await Product.update({
-    "_id": prodId
+    "_id": prodId,
+    "userId": req.user._id
   }, {
     title,
     price,
@@ -91,7 +92,8 @@ exports.postDeleteProduct = async (req, res, next) => {
   const prodId = req.body.productId;
   try {
     let result = await Product.deleteOne({
-      _id: prodId
+      _id: prodId,
+      userId: req.user._id
     })
     res.redirect('/admin/products');
   } catch (err) {
