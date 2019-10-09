@@ -1,4 +1,7 @@
 const crypto = require('crypto');
+const {
+  validationResult
+} = require('express-validator/check')
 
 let User = require('../models/user');
 const bcrypt = require('bcryptjs');
@@ -17,40 +20,65 @@ exports.getLogin = async (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: req.flash('error')
+    errorMessage: req.flash('error'),
+    oldInput: {
+      email: '',
+      password: ''
+    },
+    validationErrors: []
   });
 };
 
 exports.postLogin = async (req, res, next) => {
-  try {
-    const {
-      email,
-      password
-    } = req.body;
+  const errors = validationResult(req);
+  const {
+    email,
+    password
+  } = req.body;
 
-    let user = await User.findOne({
-      email: email
+  if (errors.isEmpty()) {
+    signInUser();
+  } else {
+    cancelSignIn()
+  }
+
+  function cancelSignIn() {
+
+    res.status(422).render('auth/login', {
+      path: '/signin',
+      pageTitle: 'Signin',
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email,
+        password
+      },
+      validationErrors: errors.array()
     });
-    if (user) {
+  }
+
+  async function signInUser() {
+    if (errors.isEmpty()) {
       try {
-        let doMatch = await bcrypt.compare(password, user.password);
-        if (doMatch) {
-          req.session.isLoggedIn = true;
-          req.session.user = user;
-          await req.session.save();
-          res.redirect('/');
-        } else {
-          req.flash('error', 'Invalid email');
-          res.redirect('/login');
-        }
+        let user = req.user;
+        req.session.isLoggedIn = true;
+        req.session.user = user;
+        await req.session.save();
+        res.redirect('/');
       } catch (err) {
-        res.redirect('/login');
+        console.log(err);
       }
+
     } else {
-      res.redirect('/login');
+      res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: errors.array()[0].msg,
+        oldInput: {
+          email
+        },
+        validationErrors: errors.array()
+      });
     }
-  } catch (err) {
-    console.log(err);
   }
 };
 
@@ -67,43 +95,69 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    errorMessage: req.flash('error')
+    errorMessage: req.flash('error'),
+    oldInput: {
+      email: '',
+      password: '',
+      confirmPassword: ''
+    },
+    validationErrors: []
   });
 };
 
 exports.postSignup = async (req, res, next) => {
-  try {
-    const {
-      email,
-      password,
-      confirmPassword
-    } = req.body;
-    let userDoc = await User.findOne({
-      email: email
-    });
-    if (userDoc) {
-      req.flash('error', 'email already exists');
-      return res.redirect('/signup');
-    }
-    let hashedPassword = await bcrypt.hash(password, 12);
+  const errors = validationResult(req);
+  const {
+    email,
+    password,
+    confirmPassword
+  } = req.body;
 
-    const user = new User({
-      email: email,
-      password: hashedPassword
-    });
-    let result = await user.save();
-    res.redirect('/login');
-    await transporter.sendMail({
-      to: email,
-      from: 'shop@nodecomplete.com',
-      subject: 'Signup succeeded',
-      html: '<h1>Thank you for signing up!</h1>'
-    });
-
-  } catch (err) {
-    console.log(err);
+  if (errors.isEmpty()) {
+    signupUser();
+  } else {
+    cancelSignup()
   }
-};
+
+  function cancelSignup() {
+    res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email,
+        password,
+        confirmPassword
+      },
+      validationErrors: errors.array()
+    });
+  }
+
+  async function signupUser() {
+
+    try {
+
+      let hashedPassword = await bcrypt.hash(password, 12);
+
+      const user = new User({
+        email: email,
+        password: hashedPassword
+      });
+      let result = await user.save();
+      res.redirect('/login');
+      await transporter.sendMail({
+        to: email,
+        from: 'shop@nodecomplete.com',
+        subject: 'Signup succeeded',
+        html: '<h1>Thank you for signing up!</h1>'
+      });
+
+
+    } catch (err) {
+      console.log(err);
+    }
+  }
+}
 
 exports.getReset = (req, res, next) => {
   res.render('auth/reset', {
