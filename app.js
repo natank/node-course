@@ -7,17 +7,20 @@ const MONGODB_URI = require('./util/database').dbURI;
 
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
-const User = require('./models/user')
-
+const csrf = require('csurf');
+const flash = require('connect-flash');
 /**App controll*/
 const app = express();
 const store = new MongoDBStore({
   uri: MONGODB_URI,
   collection: 'sessions'
 })
+
+const csrfProtection = csrf();
+
 const errorController = require('./controllers/error');
 /**Models */
-// const User = require('./models/user').User
+const User = require('./models/user')
 /**Routes */
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -25,16 +28,6 @@ const authRoutes = require('./routes/auth');
 
 setMiddleware();
 connect();
-//createUser()
-
-function createUser() {
-  User.create({
-    name: "alon",
-    email: "along@gmail.com",
-    cart: [],
-    orders: []
-  })
-}
 
 function setMiddleware() {
   app.set('view engine', 'ejs');
@@ -52,19 +45,26 @@ function setMiddleware() {
     saveUninitialized: false,
     store: store
   }))
+  app.use(csrfProtection);
+  app.use(flash());
 
-  app.use(async (req,res,next)=>{
-    try{
-      if(req.session.user){
-        req.user = await User.findOne({_id: req.session.user._id})
+  app.use(async (req, res, next) => {
+    if (req.session.user) {
+      try {
+        let user = await User.findById(req.session.user._id)
+        req.user = user;
+      } catch (err) {
+        console.log(err)
       }
-      next()
-    } catch(err){
-      console.log(err)
     }
+    next()
   })
 
-
+  app.use(async (req, res, next) => {
+    res.locals.isLoggedIn = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+  })
 
   app.use('/admin', adminRoutes);
   app.use(shopRoutes);

@@ -4,8 +4,7 @@ exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
-    editing: false,
-    isLoggedIn: req.session.isLoggedIn
+    editing: false
   });
 };
 
@@ -27,8 +26,6 @@ exports.postAddProduct = (req, res, next) => {
   product
     .save()
     .then(result => {
-      // console.log(result);
-      console.log('Created Product');
       res.redirect('/admin/products');
     })
     .catch(err => {
@@ -52,8 +49,7 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
-        product: product,
-        isLoggedIn: req.session.isLoggedIn
+        product: product
       });
     })
     .catch(err => console.log(err));
@@ -73,18 +69,18 @@ exports.postEditProduct = async (req, res, next) => {
     description,
     imageUrl
   })
-  console.log(result);
-  res.redirect('/admin/')
+  res.redirect('/admin/products')
 };
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find({
+      userId: req.user._id
+    });
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
-      path: '/admin/products',
-      isLoggedIn: req.session.isLoggedIn
+      path: '/admin/products'
     });
   } catch (err) {
     console.log(err);
@@ -97,7 +93,6 @@ exports.postDeleteProduct = async (req, res, next) => {
     let result = await Product.deleteOne({
       _id: prodId
     })
-    console.log(result);
     res.redirect('/admin/products');
   } catch (err) {
     console.log(err)

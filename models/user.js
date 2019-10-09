@@ -3,10 +3,13 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   name: {
+    type: String
+  },
+  email: {
     type: String,
     required: true
   },
-  email: {
+  password: {
     type: String,
     required: true
   },
@@ -99,7 +102,7 @@ userSchema.methods.addOrder = function () {
   let p = new Promise(async (resolve, reject) => {
     let user;
     try {
-      user = this.user;
+      user = this;
     } catch (err) {
       reject(err)
     }
