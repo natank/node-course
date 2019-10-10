@@ -29,11 +29,11 @@ router.post('/login', [
       req.user = user;
       return true;
     }
-  }).withMessage('Email does not exist!!'),
+  }).withMessage('Email does not exist!!').normalizeEmail(),
   body('password', "password error").isLength({
     min: 5
   }).withMessage('password must be 5 chars or more')
-  .isAlphanumeric().withMessage('password must contain only letters and numbers')
+  .isAlphanumeric().withMessage('password must contain only letters and numbers').trim()
   .custom(async (value, {
     req
   }) => {
@@ -57,11 +57,6 @@ router.post('/signup', [check('email')
     .withMessage('Please enter a valid email').custom((value, {
       req
     }) => {
-      // if (value === 'test@test.com') {
-      //   throw new Error('This email address is forbidden.');
-      // } else {
-      //   return true;
-      // }
       let p = new Promise(async (resolve, reject) => {
         let userDoc = await User.findOne({
           email: req.body.email
@@ -72,11 +67,11 @@ router.post('/signup', [check('email')
         resolve();
       })
       return p;
-    }),
+    }).normalizeEmail(),
     body('password', "default error message").isLength({
       min: 5
     }).withMessage('password must be 5 chars or more')
-    .isAlphanumeric().withMessage('password must contain only letters and numbers'),
+    .isAlphanumeric().trim().withMessage('password must contain only letters and numbers'),
     body('confirmPassword').custom((value, {
       req
     }) => {
