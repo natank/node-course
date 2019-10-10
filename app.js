@@ -52,13 +52,17 @@ function setMiddleware() {
     if (req.session.user) {
       try {
         let user = await User.findById(req.session.user._id)
-        req.user = user;
+
+        if (user) {
+          req.user = user;
+        }
       } catch (err) {
-        console.log(err)
+        throw new Error(err)
       }
     }
     next()
   })
+
 
   app.use(async (req, res, next) => {
     res.locals.isLoggedIn = req.session.isLoggedIn;
@@ -70,7 +74,13 @@ function setMiddleware() {
   app.use(shopRoutes);
   app.use(authRoutes)
 
+  app.get('/500', errorController.get500)
   app.use(errorController.get404);
+
+  // Error handling middleware
+  app.use((error, req, res, next) => {
+    res.redirect('/500')
+  })
 }
 
 async function connect() {

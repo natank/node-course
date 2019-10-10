@@ -65,7 +65,9 @@ exports.postLogin = async (req, res, next) => {
         await req.session.save();
         res.redirect('/');
       } catch (err) {
-        console.log(err);
+        const error = new Error(err)
+        error.httpStatusCode = 500;
+        return next(error);
       }
 
     } else {
@@ -87,7 +89,9 @@ exports.getLogout = async (req, res, next) => {
     await req.session.destroy();
     res.redirect('/');
   } catch (err) {
-    console.log(err);
+    const error = new Error(err)
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -154,7 +158,9 @@ exports.postSignup = async (req, res, next) => {
 
 
     } catch (err) {
-      console.log(err);
+      const error = new Error(err)
+      error.httpStatusCode = 500;
+      return next(error);
     }
   }
 }
@@ -201,7 +207,9 @@ exports.postReset = async (req, res, next) => {
       console.log(token);
     }
   } catch (err) {
-    console.log(err);
+    const error = new Error(err)
+    error.httpStatusCode = 500;
+    return next(error);
     req.flash('error', "Sorry, we can't reset your password at the moment, please try again later");
     res.redirect('/reset')
   }
@@ -229,7 +237,9 @@ exports.getNewPassword = async (req, res, next) => {
       res.redirect('/signup');
     }
   } catch (err) {
-    console.log(err)
+    const error = new Error(err)
+    error.httpStatusCode = 500;
+    return next(error)
   }
 }
 
@@ -253,7 +263,8 @@ exports.postNewPassword = async (req, res, next) => {
     await user.save()
     res.redirect('/login');
   } catch (err) {
-    console.log(err)
+    const error = new Error(err)
+    error.httpStatusCode = 500;
+    return next(error)
   }
-
 }
