@@ -1,9 +1,11 @@
 const express = require('express');
 
+const productMiddleware = require('../middleware/product');
+
 const {
   check,
   body
-} = require('express-validator/check');
+} = require('express-validator');
 
 const adminController = require('../controllers/admin');
 const isAuth = require('../middleware/is-auth');
@@ -16,11 +18,17 @@ router.get('/add-product', isAuth, adminController.getAddProduct);
 router.get('/products', isAuth, adminController.getProducts);
 
 // // /admin/add-product => POST
-router.post('/add-product', isAuth, [validateTitle(), validateImage(), validatePrice(), validateDescription()], adminController.postAddProduct);
+router.post('/add-product', isAuth, [validateTitle(), validateImage(), validatePrice(), validateDescription()],
+  productMiddleware.handleErrors,
+  productMiddleware.doAddProduct,
+  productMiddleware.doSaveNewProduct);
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
 
-router.post('/edit-product', isAuth, [validateTitle(), validateImage(), validatePrice(), validateDescription()], adminController.postEditProduct);
+router.post('/edit-product', isAuth, [validateTitle(), validateEditImage(), validatePrice(), validateDescription()],
+  productMiddleware.handleErrors,
+  productMiddleware.doUpdateProduct,
+  productMiddleware.doSaveUpdatedProduct);
 
 router.post('/delete-product', isAuth, adminController.postDeleteProduct);
 
@@ -36,10 +44,29 @@ function validateTitle() {
 }
 
 function validateImage() {
-  return body("imageUrl")
-    .trim()
-    .isURL()
-    .withMessage('The image should have a valid URL');
+  return check("image")
+    .custom((value, {
+      req
+    }) => {
+      if (req.file) {
+        req.image = req.file.path;
+        return true
+      } else return false;
+    }).withMessage('Attached file is not an image')
+}
+
+function validateEditImage() {
+  return check('image')
+    .custom((value, {
+      req
+    }) => {
+      if (req.file) {
+        req.image = req.file.path;
+      } else {
+        req.image = null
+      }
+      return true
+    })
 }
 
 function validatePrice() {
