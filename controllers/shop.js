@@ -2,16 +2,35 @@ const Product = require('../models/product');
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit')
-const contentDisposition = require('content-disposition');
+const paginationControl = require('./paginationControl');
 
 exports.getProducts = async (req, res, next) => {
   try {
-    let products = await Product.find().populate('userId');
+    let allProducts = await Product.find().populate('userId');
+
+    const paginationProps = paginationControl.paginationProps(
+      allProducts, req.query.pageToLoad
+    )
+
+    const {
+      arrPageItems,
+      pageToLoad,
+      prevPage,
+      nextPage,
+      totalNumOfPages
+    } = paginationProps;
 
     res.render('shop/product-list', {
-      prods: products,
+      prods: arrPageItems,
       pageTitle: 'All Products',
-      path: '/products'
+      path: '/products',
+      paginationProps: {
+        pageToLoad: pageToLoad,
+        prevPage: prevPage,
+        nextPage: nextPage,
+        totalNumOfPages: totalNumOfPages
+      }
+
     });
   } catch (err) {
     const error = new Error(err)

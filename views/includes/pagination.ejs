@@ -1,0 +1,11 @@
+<div class="pagination">
+  <a href="<%=path%>/?pageToLoad=<%=paginationProps.prevPage%>">&laquo;</a>
+  <% for(var i=0; i<paginationProps.totalNumOfPages; i++){ %>
+    <a 
+      class = <%= parseInt(paginationProps.pageToLoad) === i+1 ? "active": "#" %> 
+      href="<%=path%>/?pageToLoad=<%=i+1%>">
+        <%=i+1%>
+    </a>
+  <% } %>
+  <a href="<%=path%>/?pageToLoad=<%=paginationProps.nextPage%>">&raquo;</a>
+</div>

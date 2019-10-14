@@ -43,7 +43,7 @@ userSchema.methods.addToCart = async function (product) {
 
     let user = this;
     let cart = [...user.cart]
-    let p = new Promise((resolve, reject) => {
+    let p = new Promise(async (resolve, reject) => {
 
       const cartItemIndex = cart.findIndex(item => {
         return item.product._id.toString() === product._id.toString();
