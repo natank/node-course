@@ -54,13 +54,13 @@ exports.getIndex = async (req, res, next) => {
 exports.getCart = async (req, res, next) => {
   try {
     let user = await req.user.populate({
-      path: 'cart.item.product',
+      path: 'cart.product',
     }).execPopulate();
 
-    let uiCart = user.cart.map(elem => {
+    let uiCart = user.cart.map(item => {
       let cartItem = {
-        product: elem.item.product,
-        quantity: elem.item.quantity
+        product: item.product,
+        quantity: item.quantity
       }
       return cartItem;
     });
@@ -126,18 +126,17 @@ exports.getOrders = async (req, res, next) => {
   let orders;
   try {
     orders = await req.user.getOrders();
-    let uiOrders = orders.map(elem => {
-      let order = {}
-      order._id = elem._id;
-      order.items = elem.order.map(item => {
+    let uiOrders = orders.map(order => {
+      let uiOrder = {}
+      uiOrder._id = order._id;
+      uiOrder.prods = order.items.map(item => {
         let prod = {
-          title: item.item.product.title,
-          quantity: item.item.quantity
+          title: item.product.title,
+          quantity: item.quantity
         }
         return prod
       });
-      return order;
-
+      return uiOrder;
     })
 
     res.render('shop/orders', {
@@ -157,12 +156,12 @@ exports.findOrderToDownload = async (req, res, next) => {
   try {
     const orders = await req.user.getOrders()
     const result = orders.find(function (order) {
-      return order.id === req.params.orderId
+      return order._id.toString() === req.params.orderId
     })
     if (!result) next(new Error('No order found.'))
 
     else {
-      req.order = result.order
+      req.order = result
       next()
     }
   } catch (err) {
@@ -196,9 +195,9 @@ exports.getInvoiceFile = async (req, res, next) => {
 
     pdfDoc.text('------------------------');
     let totalPrice = 0;
-    req.order.forEach(item => {
-      pdfDoc.fontSize(14).text(`${item.item.product.title} - ${item.item.quantity} x $ ${item.item.product.price}`);
-      totalPrice += item.item.quantity * item.item.product.price
+    req.order.items.forEach(item => {
+      pdfDoc.fontSize(14).text(`${item.product.title} - ${item.quantity} x $ ${item.product.price}`);
+      totalPrice += item.quantity * item.product.price
     })
     pdfDoc.fontSize(20).text('----')
     pdfDoc.text(`Total Price: $${totalPrice}`);

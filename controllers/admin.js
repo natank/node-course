@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
@@ -54,19 +53,4 @@ exports.getProducts = async (req, res, next) => {
     error.httpStatusCode = 500;
     return next(error)
   }
-};
-
-exports.postDeleteProduct = async (req, res, next) => {
-  const prodId = req.body.productId;
-  try {
-    let result = await Product.deleteOne({
-      _id: prodId,
-      userId: req.user._id
-    })
-    res.redirect('/admin/products');
-  } catch (err) {
-    const error = new Error(err)
-    error.httpStatusCode = 500;
-    return next(error)
-  };
 };

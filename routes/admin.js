@@ -19,18 +19,26 @@ router.get('/products', isAuth, adminController.getProducts);
 
 // // /admin/add-product => POST
 router.post('/add-product', isAuth, [validateTitle(), validateImage(), validatePrice(), validateDescription()],
-  productMiddleware.handleErrors,
-  productMiddleware.doAddProduct,
-  productMiddleware.doSaveNewProduct);
+  productMiddleware.getErrors,
+  productMiddleware.addNewProduct,
+  productMiddleware.saveNewProduct,
+  productMiddleware.finalizeAddProduct
+);
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
 
 router.post('/edit-product', isAuth, [validateTitle(), validateEditImage(), validatePrice(), validateDescription()],
-  productMiddleware.handleErrors,
+  productMiddleware.getErrors,
   productMiddleware.doUpdateProduct,
-  productMiddleware.doSaveUpdatedProduct);
+  productMiddleware.doSaveUpdatedProduct,
+  productMiddleware.deleteProductImage,
+  productMiddleware.finalizeUpdatingProduct
+);
 
-router.post('/delete-product', isAuth, adminController.postDeleteProduct);
+router.post('/delete-product', isAuth,
+  productMiddleware.deleteProduct,
+  productMiddleware.deleteProductImage,
+  productMiddleware.finalizeDeleteProduct);
 
 module.exports = router;
 
