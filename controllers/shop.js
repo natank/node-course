@@ -9,15 +9,22 @@ exports.getProducts = async (req, res, next) => {
     let allProducts = await Product.find().populate('userId');
 
     const paginationProps = paginationControl.paginationProps(
-      allProducts, req.query.pageToLoad
+      allProducts,
+      req.query.pageToLoad,
+      req.query.dir,
+      req.query.firstLink,
+      req.query.lastLink
     )
+
 
     const {
       arrPageItems,
       pageToLoad,
       prevPage,
       nextPage,
-      totalNumOfPages
+      totalNumOfPages,
+      firstLink,
+      lastLink
     } = paginationProps;
 
     res.render('shop/product-list', {
@@ -28,7 +35,9 @@ exports.getProducts = async (req, res, next) => {
         pageToLoad: pageToLoad,
         prevPage: prevPage,
         nextPage: nextPage,
-        totalNumOfPages: totalNumOfPages
+        totalNumOfPages: totalNumOfPages,
+        firstLink,
+        lastLink
       }
 
     });

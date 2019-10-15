@@ -47,7 +47,11 @@ exports.getProducts = async (req, res, next) => {
     });
 
     const paginationProps = paginationControl.paginationProps(
-      allProducts, req.query.pageToLoad
+      allProducts,
+      req.query.pageToLoad,
+      req.query.dir,
+      req.query.firstLink,
+      req.query.lastLink
     )
 
     const {
@@ -55,7 +59,9 @@ exports.getProducts = async (req, res, next) => {
       pageToLoad,
       prevPage,
       nextPage,
-      totalNumOfPages
+      totalNumOfPages,
+      firstLink,
+      lastLink
     } = paginationProps;
 
     res.render('admin/products', {
@@ -66,7 +72,9 @@ exports.getProducts = async (req, res, next) => {
         pageToLoad: pageToLoad,
         prevPage: prevPage,
         nextPage: nextPage,
-        totalNumOfPages: totalNumOfPages
+        totalNumOfPages: totalNumOfPages,
+        firstLink,
+        lastLink
       }
     });
   } catch (err) {

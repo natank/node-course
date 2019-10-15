@@ -35,7 +35,7 @@ router.post('/edit-product', isAuth, [validateTitle(), validateEditImage(), vali
   productMiddleware.finalizeUpdatingProduct
 );
 
-router.post('/delete-product', isAuth,
+router.delete('/delete-product', isAuth,
   productMiddleware.deleteProduct,
   productMiddleware.deleteProductImage,
   productMiddleware.finalizeDeleteProduct);

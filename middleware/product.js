@@ -149,18 +149,21 @@ let middleware = {
         _id: prodId,
         userId: req.user._id
       })
-
       next();
     } catch (err) {
-      const error = new Error(err)
-      error.httpStatusCode = 500;
+      res.status(500).json({
+        message: 'Deleting product failed'
+      })
       next(error)
     }
   },
   finalizeDeleteProduct: async (req, res, next) => {
-    res.redirect('/admin/products');
+    res.status(200).json({
+      message: 'Success'
+    })
   }
 }
+
 
 
 

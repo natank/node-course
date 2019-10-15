@@ -39,6 +39,9 @@ const dataMW = (function (app) {
       extended: false
     })
   );
+  app.use(
+    bodyParser.json()
+  )
 })(app)
 
 const sessionMW = (function (app) {
