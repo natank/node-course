@@ -31,9 +31,9 @@
                     </article>
                 <% } %>
             </div>
+            <%- include('../includes/pagination.ejs', {paginationProps: paginationProps}) %>
         <% } else { %>
             <h1>No Products Found!</h1>
         <% } %>
     </main>
-<%- include('../includes/pagination.ejs', {paginationProps: paginationProps}) %>
 <%- include('../includes/end.ejs') %>

@@ -1,5 +1,6 @@
 <%- include('../includes/head.ejs') %>
     <link rel="stylesheet" href="/css/product.css">
+    <link rel="stylesheet" href="/css/pagination.css">
     </head>
 
     <body>
@@ -38,6 +39,7 @@
                             </article>
                             <% } %>
                     </div>
+                    <%- include('../includes/pagination.ejs', {paginationProps: paginationProps}) %>
                     <% } else { %>
                         <h1>No Products Found!</h1>
                         <% } %>

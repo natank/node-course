@@ -57,11 +57,38 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    let products = await Product.find();
+    let allProducts = await Product.find();
+
+    const paginationProps = paginationControl.paginationProps(
+      allProducts,
+      req.query.pageToLoad,
+      req.query.dir,
+      req.query.firstLink,
+      req.query.lastLink
+    )
+
+    const {
+      arrPageItems,
+      pageToLoad,
+      prevPage,
+      nextPage,
+      totalNumOfPages,
+      firstLink,
+      lastLink
+    } = paginationProps;
+
     res.render('shop/index', {
-      prods: products,
+      prods: arrPageItems,
       pageTitle: 'Shop',
-      path: '/'
+      path: '',
+      paginationProps: {
+        pageToLoad: pageToLoad,
+        prevPage: prevPage,
+        nextPage: nextPage,
+        totalNumOfPages: totalNumOfPages,
+        firstLink,
+        lastLink
+      }
     });
   } catch (err) {
     const error = new Error(err)

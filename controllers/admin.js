@@ -1,4 +1,6 @@
 const Product = require('../models/product');
+const paginationControl = require('./paginationControl');
+
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
@@ -40,13 +42,32 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({
+    const allProducts = await Product.find({
       userId: req.user._id
     });
+
+    const paginationProps = paginationControl.paginationProps(
+      allProducts, req.query.pageToLoad
+    )
+
+    const {
+      arrPageItems,
+      pageToLoad,
+      prevPage,
+      nextPage,
+      totalNumOfPages
+    } = paginationProps;
+
     res.render('admin/products', {
-      prods: products,
+      prods: arrPageItems,
       pageTitle: 'Admin Products',
-      path: '/admin/products'
+      path: '/admin/products',
+      paginationProps: {
+        pageToLoad: pageToLoad,
+        prevPage: prevPage,
+        nextPage: nextPage,
+        totalNumOfPages: totalNumOfPages
+      }
     });
   } catch (err) {
     const error = new Error(err)
