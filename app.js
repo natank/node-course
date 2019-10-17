@@ -16,6 +16,10 @@ const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
+
+
+
+
 /** global app variables */
 const app = express();
 const store = new MongoDBStore({
@@ -23,6 +27,7 @@ const store = new MongoDBStore({
   collection: 'sessions'
 });
 const csrfProtection = csrf();
+
 
 
 /**Middleware */
