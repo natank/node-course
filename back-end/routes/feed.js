@@ -23,4 +23,14 @@ router.post('/post', [
   })
 ], feedController.createPost);
 
+router.get('/post/:postId', feedController.getPost)
+
+router.put('/post:postId', [
+  body('title').trim().isLength({
+    min: 5
+  }).withMessage('title must be at least 10 char long'),
+  body('content').trim().isLength({
+    min: 5
+  })
+], feedController.editPost)
 module.exports = router;

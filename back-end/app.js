@@ -1,13 +1,27 @@
+const path = require('path');
 const express = require('express');
+const mongoConnect = require('./util/database').mongoConnect;
+const MONGODB_URI = require('./util/database').dbURI;
+
 const bodyParser = require('body-parser');
+const multer = require('multer');
 
 const feedRoutes = require('./routes/feed');
 
 const app = express();
 
-// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
+const multerCfg = require('./middleware/multerCfg');
+
 app.use(bodyParser.json()); // application/json
 
+app.use(
+    multer({
+        storage: multerCfg.fileStorage,
+        fileFilter: multerCfg.fileFilter
+    }).single('image')
+);
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
@@ -17,4 +31,20 @@ app.use((req, res, next) => {
 
 app.use('/feed', feedRoutes);
 
-app.listen(8080);
+const connect = (async function (app) {
+    try {
+        await mongoConnect();
+        app.listen(8080);
+    } catch (err) {
+        console.log(err);
+    }
+})(app)
+
+app.use((error, req, res, next) => {
+    console.log(error);
+    const status = error.statusCode || 500;
+    const message = error.message;
+    res.status(status).json({
+        message: message
+    });
+})
