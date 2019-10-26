@@ -1,17 +1,28 @@
-exports.updatePost = async (req, res, next) => {
+const fs = require('fs');
+
+const findPost = require('./helpers').findPost;
+// use upath library to convert path from windows to unix style.
+let upath = require('upath');
+const {
+  validationResult
+} = require('express-validator');
+const Post = require('../models/post');
+
+/**
+ * This route handler takes care of updating a post in the DB
+ */
+module.exports = async (req, res, next) => {
   // extract postId from url params
-  let p = new Promise((resolve, reject) => {
-    try {
-      checkErrors(req);
-      let updatedPost = findPost(req)
-      updateImage(req, updatedPost);
-      updateDetails(req, updatedPost);
-      saveUpdatedPost(updatedPost)
-    } catch (eror) {
-      next(eror)
-    }
-  })
-  return p;
+  try {
+    checkErrors(req);
+    let updatedPost = await findPost(req.params.postId)
+    updateImage(req, updatedPost);
+    updateDetails(req, updatedPost);
+    saveUpdatedPost(res, updatedPost);
+    return;
+  } catch (eror) {
+    next(eror)
+  }
 }
 
 function checkErrors(req) {
@@ -23,26 +34,18 @@ function checkErrors(req) {
   }
 }
 
-async function findPost(req) {
-  let post;
-  try {
-    post = await Post.findById(req.param.postId)
-  } catch (eror) {
-    eror.statusCode = 500
-    throw eror;
-  }
-  if (!post) {
-    const error = new Error('Could not find post.');
-    error.statusCode = 404;
-    throw error;
-  } else {
-    return post
-  }
-}
+
+
 
 function updateImage(req, updatedPost) {
   let imageUrl = req.body.image;
   if (req.file) {
+
+    fs.unlink(updatedPost.imageUrl, function (err) {
+      if (err) throw err;
+      // if no error, file has been deleted successfully
+    });
+    req.file.path = upath.normalize(req.file.path)
     imageUrl = req.file.path
   }
   if (!imageUrl) {
@@ -55,15 +58,29 @@ function updateImage(req, updatedPost) {
 
 function updateDetails(req, updatedPost) {
   updatedPost.title = req.body.title;
-  updatedPost.imageUrl = req.imageUrl;
   updatedPost.content = req.body.content;
-  updatedPost;
 }
 
-function saveUpdatedPost(updatedPost) {
-  let result = await updatedPost.save()
-  res.status(200).json({
-    message: 'Post updated!',
-    post: result
-  })
+
+async function saveUpdatedPost(res, updatedPost) {
+  try {
+    let result = await Post.update({
+      _id: updatedPost._id
+    }, {
+      title: updatedPost.title,
+      content: updatedPost.content,
+      imageUrl: updatedPost.imageUrl
+    })
+    if (result.nModified != 1) {
+      let err = new Error('faild to updated post');
+      throw (err);
+    }
+    res.status(200).json({
+      message: 'Post updated!',
+      post: updatedPost
+    })
+  } catch (error) {
+    throw (error)
+  }
+
 }

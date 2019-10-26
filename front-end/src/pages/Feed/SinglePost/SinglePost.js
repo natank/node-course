@@ -48,7 +48,7 @@ class SinglePost extends Component {
       } < /h1> <
       h2 >
       Created by {
-        this.state.author
+        ` ${this.state.author} `
       }
       on {
         this.state.date

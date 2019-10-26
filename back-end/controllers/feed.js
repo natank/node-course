@@ -1,6 +1,7 @@
-let mongoose = require('mongoose');
-let Post = require('../models/post');
-let updatePost = require('./feedUpdatePost');
+const mongoose = require('mongoose');
+const Post = require('../models/post');
+const updatePost = require('./feedUpdatePost');
+const helpers = require('./helpers');
 
 // use upath library to convert path from windows to unix style.
 let upath = require('upath');
@@ -10,11 +11,19 @@ const {
 } = require('express-validator');
 
 exports.getPosts = async (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 2;
+  let totalItems;
   try {
-    let posts = await Post.find();
+    let totalItems = await Post.find().countDocuments();
+
+    let posts = await Post.find()
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
     res.status(200).json({
       message: "fetched posts successfuly",
-      posts: posts
+      posts,
+      totalItems
     });
 
   } catch (err) {
@@ -75,6 +84,7 @@ exports.createPost = async (req, res, next) => {
 };
 
 exports.getPost = async (req, res, next) => {
+
   const postId = req.params.postId;
   try {
     let post = await Post.findById(postId);
@@ -96,3 +106,14 @@ exports.getPost = async (req, res, next) => {
 }
 
 exports.updatePost = updatePost;
+
+exports.deletePost = async (req, res, next) => {
+  try {
+    await helpers.deletePost(req.params.postId);
+    res.status(200).json({
+      message: 'Post deleted'
+    })
+  } catch (error) {
+    next(error)
+  }
+}

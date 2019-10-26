@@ -25,12 +25,14 @@ router.post('/post', [
 
 router.get('/post/:postId', feedController.getPost)
 
-router.put('/post:postId', [
+router.put('/post/:postId', [
   body('title').trim().isLength({
     min: 5
   }).withMessage('title must be at least 10 char long'),
   body('content').trim().isLength({
     min: 5
   })
-], feedController.editPost)
+], feedController.updatePost)
 module.exports = router;
+
+router.delete('/post/:postId', feedController.deletePost)
