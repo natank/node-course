@@ -22,7 +22,11 @@ class Feed extends Component {
   };
 
   componentDidMount() {
-    fetch('URL')
+    fetch('http://localhost:8080/status', {
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      }
+    })
       .then(res => {
         if (res.status !== 200) {
           throw new Error('Failed to fetch user status.');
@@ -37,7 +41,7 @@ class Feed extends Component {
     this.loadPosts();
   }
 
-  loadPosts = direction => {
+  loadPosts = async direction => {
     if (direction) {
       this.setState({ postsLoading: true, posts: [] });
     }
@@ -50,31 +54,45 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch(`http://localhost:8080/feed/posts?page=${page}`)
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error('Failed to fetch posts.');
+    try {
+      let res = await fetch(`http://localhost:8080/feed/posts?page=${page}`, {
+        headers: {
+          Authorization: `Bearer ${this.props.token}`
         }
-        return res.json();
       })
-      .then(resData => {
-        this.setState({
-          posts: resData.posts.map(post => {
-            return {
-              ...post,
-              imagePath: post.imageUrl
-            }
-          }),
-          totalPosts: resData.totalItems,
-          postsLoading: false
-        });
-      })
-      .catch(this.catchError);
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch posts.');
+      }
+      let resData = await res.json();
+
+      this.setState({
+        posts: resData.posts.map(post => {
+          return {
+            ...post,
+            imagePath: post.imageUrl
+          }
+        }),
+        totalPosts: resData.totalItems,
+        postsLoading: false
+      });
+    } catch (err) {
+      this.catchError(err)
+    }
   };
 
   statusUpdateHandler = event => {
     event.preventDefault();
-    fetch('URL')
+    const statusField = document.querySelector('form input');
+    const formData = new FormData();
+    formData.append('status', statusField.value)
+
+    fetch('http://localhost:8080/status', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      }
+    })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Can't update status!");
@@ -83,6 +101,7 @@ class Feed extends Component {
       })
       .then(resData => {
         console.log(resData);
+        statusField.value = resData.status;
       })
       .catch(this.catchError);
   };
@@ -126,8 +145,13 @@ class Feed extends Component {
 
     fetch(url, {
       method: method,
-      body: formData
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      }
     })
+
+
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error('Creating or editing a post failed!');
@@ -179,7 +203,10 @@ class Feed extends Component {
   deletePostHandler = postId => {
     this.setState({ postsLoading: true });
     fetch(`http://localhost:8080/feed/post/${postId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      }
     })
       .then(res => {
         if (res.status !== 200 && res.status !== 201) {

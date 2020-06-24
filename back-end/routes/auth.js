@@ -9,7 +9,7 @@ router.put('/signup', [
     .custom((value, { req }) => {
       return User.findOne({ email: value }).then(userDoc => {
         if (userDoc) {
-          return Promise.reject('E-Mal address already exists!');
+          return Promise.reject('E-Mail address already exists!');
         }
       })
     })
@@ -20,6 +20,8 @@ router.put('/signup', [
     .not()
     .isEmpty()
 ], authController.signup);
+
+router.post('/login', authController.login);
 
 module.exports = router;
 

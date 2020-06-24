@@ -1,6 +1,10 @@
+const errors = require('../utils/errors');
 const { validationResult } = require('express-validator');
 const deleteImage = require('../utils/aws-s3').deleteFile;
 const Post = require('../models/post')
+const User = require('../models/user');
+const { checkErrorAndCallNext, createErrorAndThrow } = errors;
+
 exports.getPosts = async (req, res, next) => {
   try {
     const currentPage = req.query.page || 1;
@@ -18,7 +22,7 @@ exports.getPosts = async (req, res, next) => {
 
 
   } catch (err) {
-    handleError(err, next)
+    checkErrorAndCallNext(err, next)
   }
 };
 
@@ -27,13 +31,12 @@ exports.createPost = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      createErrorAndThrow('Validation failed, entered data is incorrect.', 422);
+      createErrorAndThrow({ str: 'Validation failed, entered data is incorrect.', errorCode: 422 });
     }
     if (!req.file) {
-      createErrorAndThrow('No image provided.', 422);
+      createErrorAndThrow({ str: 'No image provided.', errorCode: 422 });
     }
     const imageUrl = req.file.location;
-    console.log(`req.file = ${JSON.stringify(req.file)}`);
     const title = req.body.title;
     const content = req.body.content;
 
@@ -41,16 +44,22 @@ exports.createPost = async (req, res, next) => {
     const post = new Post({
       title: title,
       content: content,
-      creator: { name: 'Nati' },
-      imageUrl: imageUrl
+      creator: req.userId,
+      imageUrl: imageUrl,
     })
-    const savedPost = await post.save();
+    await post.save();
+    // Assign the post to the user who created it.
+    const creator = await User.findById(req.userId); // find user
+    creator.posts.push(post); // push post to user posts
+    await creator.save() // save the user to the db
+
     res.status(201).json({
       message: 'Post created successfully!',
-      post: savedPost
+      post: post,
+      creator: { _id: creator._id, name: creator.name }
     });
   } catch (err) {
-    handleError(err, next)
+    checkErrorAndCallNext(err, next)
   }
 };
 
@@ -59,49 +68,66 @@ exports.getPost = async (req, res, next) => {
   try {
     let post = await Post.findById(postId);
     if (!post) {
-      createErrorAndThrow('Could not find post.', 404)
+      createErrorAndThrow({ str: 'Could not find post.', errorCode: 404 })
     } else {
       res.status(200).json({ message: 'Post fetched.', post: post })
     }
   } catch (err) {
-    handleError(err, next)
+    checkErrorAndCallNext(err, next)
   }
 }
 
 exports.updatePost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    createErrorAndThrow('Validation failed, entered data is incorrect.', 422);
+    createErrorAndThrow({ str: 'Validation failed, entered data is incorrect.', errorCode: 422 });
   }
-  const { postId, title, content } = req.params;
-  if (req.file) {
-    imageUrl = req.file.location;
-  }
-  // Error occurs if - no imageUrl in body and no imageUrl in req.file
-  // means that the front end wanted to update the image but didn't upload the new one correctly.
-  if (!imageUrl) {
-    createErrorAndThrow('No file picked.', 422)
-  }
+
+  const postId = req.params.postId;
+  const title = req.body.title;
+  const content = req.body.content;
+
+
 
   try {
     let post = await Post.findById(postId)
+    // check if post exists
     if (!post) {
       createErrorAndThrow('Could not find post.', 404)
-    } else {
-
-      // Delete the old image if a new one was uploaded
-      const isImageUpdated = (imageUrl !== post.imageUrl);
-      if (isImageUpdated) {
-        clearImage(post.imageUrl);
-      }
-
-      post = { ...post, title, imageUrl, content }
-
-      let result = await post.save();
-      res.status(200).json({ message: 'Post updated.', post: result })
     }
+
+    // check if image was uploaded
+    let imageUrl = post.imageUrl;
+    if (req.file) {
+      imageUrl = req.file.location;
+      // means that the front end wanted to update the image but didn't upload the new one correctly.
+      if (!imageUrl) {
+        createErrorAndThrow({ str: 'No file picked.', errorCode: 422 })
+      }
+    }
+
+    // Check authorization
+    if (post.creator.toString() !== req.userId) {
+      createErrorAndThrow({
+        str: 'Not authorized',
+        statusCode: 403
+      })
+    }
+    // Delete the old image if a new one was uploaded
+    const isImageUpdated = (imageUrl !== post.imageUrl);
+    if (isImageUpdated) {
+      clearImage(post.imageUrl);
+    }
+
+    post.title = title;
+    post.content = content;
+    post.imageUrl = imageUrl;
+
+    let result = await post.save();
+    res.status(200).json({ message: 'Post updated.', post: result })
+
   } catch (err) {
-    handleError(err, next);
+    checkErrorAndCallNext(err, next);
   }
 }
 
@@ -110,17 +136,30 @@ exports.deletePost = async (req, res, next) => {
   try {
     let post = await Post.findById(postId);
     if (!post) {
-      createErrorAndThrow('Could not find post.', 404)
+      createErrorAndThrow({ str: 'Could not find post.', errorCode: 404 })
     } else {
-      // check logged in user
+
+      // Check authorization
+      ((creator, user) => {
+        if (creator !== user) {
+          createErrorAndThrow({
+            str: 'Not authorized',
+            statusCode: 403
+          })
+        }
+      })(post.creator.toString(), req.userId)
+
       clearImage(post.imageUrl);
       let result = await Post.findByIdAndRemove(postId);
-      console.log(result);
+
+      let user = await User.findById(req.userId);
+      user.posts.pull(postId);
+      result = await user.save();
       res.status(200).json({ message: 'deleted post.' });
     }
 
   } catch (err) {
-    handleError(err, next);
+    checkErrorAndCallNext(err, next);
   }
 }
 
@@ -137,16 +176,3 @@ const clearImage = imageUrl => {
 }
 
 
-
-function handleError(err, next) {
-  if (!err.statusCode) {
-    err.statusCode = 500;
-  }
-  next(err)
-}
-
-function createErrorAndThrow(str, code) {
-  const error = new Error(str)
-  error.statusCode = code;
-  throw error;
-}
